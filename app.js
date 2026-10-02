@@ -462,6 +462,29 @@ function adminPage() {
       </div>
     </div>
 
+    <div class="admin-grid admin-existing">
+      <div class="card admin-card">
+        <div class="card-head"><div><span class="icon">👥</span><h2>Manage teams</h2></div></div>
+        <div class="admin-match-list">
+          ${teams.map(t=>`
+            <div class="admin-match-row">
+              <div><strong>${t.emoji} ${t.name}</strong><span>${players.filter(p=>p.teamId===t.id).length} players • ${matches.filter(m=>m.home===t.id||m.away===t.id).length} matches</span></div>
+              <button class="danger-button delete-team" data-id="${t.id}" type="button">Delete</button>
+            </div>`).join("") || '<p class="admin-help">No teams.</p>'}
+        </div>
+      </div>
+      <div class="card admin-card">
+        <div class="card-head"><div><span class="icon">⚽</span><h2>Manage players</h2></div></div>
+        <div class="admin-match-list">
+          ${players.slice().sort((x,y)=>x.name.localeCompare(y.name)).map(p=>`
+            <div class="admin-match-row">
+              <div><strong>${p.name}</strong><span>${teamName(p.teamId)} • #${p.number} • ${p.position}</span></div>
+              <button class="danger-button delete-player" data-id="${p.id}" type="button">Delete</button>
+            </div>`).join("") || '<p class="admin-help">No players.</p>'}
+        </div>
+      </div>
+    </div>
+
     <div class="card admin-card admin-existing">
       <div class="card-head"><div><span class="icon">🗑️</span><h2>Manage matches</h2></div></div>
       <div class="admin-match-list">
@@ -582,6 +605,34 @@ function bindAdminEvents() {
   document.querySelectorAll(".delete-match").forEach(btn => btn.addEventListener("click", async () => {
     if (!confirm("Delete this match? This will change the standings and scorer totals.")) return;
     matches = matches.filter(m => m.id !== btn.dataset.id);
+    await commit();
+  }));
+
+  document.querySelectorAll(".delete-player").forEach(btn => btn.addEventListener("click", async () => {
+    const p = playerById(btn.dataset.id);
+    if (!p || !confirm(`Delete ${p.name}? Their goals will no longer be counted.`)) return;
+    players = players.filter(x => x.id !== p.id);
+    matches.forEach(m => {
+      m.homeScorers = (m.homeScorers || []).filter(id => id !== p.id);
+      m.awayScorers = (m.awayScorers || []).filter(id => id !== p.id);
+    });
+    await commit();
+  }));
+
+  document.querySelectorAll(".delete-team").forEach(btn => btn.addEventListener("click", async () => {
+    const t = teamById(btn.dataset.id);
+    if (!t) return;
+    const nPlayers = players.filter(p => p.teamId === t.id).length;
+    const nMatches = matches.filter(m => m.home === t.id || m.away === t.id).length;
+    if (!confirm(`Delete ${t.name}? This also deletes its ${nPlayers} player(s) and ${nMatches} match(es), and changes the standings.`)) return;
+    const gone = new Set(players.filter(p => p.teamId === t.id).map(p => p.id));
+    teams = teams.filter(x => x.id !== t.id);
+    players = players.filter(p => p.teamId !== t.id);
+    matches = matches.filter(m => m.home !== t.id && m.away !== t.id);
+    matches.forEach(m => {
+      m.homeScorers = (m.homeScorers || []).filter(id => !gone.has(id));
+      m.awayScorers = (m.awayScorers || []).filter(id => !gone.has(id));
+    });
     await commit();
   }));
 
