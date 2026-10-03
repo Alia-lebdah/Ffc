@@ -185,10 +185,11 @@ footer strong { color:var(--ink); }
 }
 
 @media (max-width: 700px) {
-  .topbar { border-radius:20px; align-items:flex-start; }
-  .brand strong { font-size:11px; }
-  nav { overflow-x:auto; max-width:55%; }
-  nav a { white-space:nowrap; font-size:11px; }
+  /* Phone: brand on the first row, full-width nav on the second */
+  .topbar { border-radius:22px; flex-wrap:wrap; gap:6px; padding:10px 12px; margin:12px auto 14px; top:8px; }
+  .brand strong { font-size:12px; }
+  nav { width:100%; justify-content:space-between; gap:2px; overflow-x:auto; }
+  nav a { flex:1 1 auto; text-align:center; white-space:nowrap; font-size:11.5px; padding:8px 4px; }
   .hero { padding:35px 25px; min-height:290px; }
   .hero h1 { font-size:43px; }
   .hero-ball { font-size:72px; right:9%; top:80px; opacity:.8; }
@@ -205,8 +206,7 @@ footer strong { color:var(--ink); }
   main, .topbar { width:calc(100% - 18px); }
   .topbar { padding:10px; }
   .brand-ball { width:34px; height:34px; }
-  nav { max-width:48%; }
-  nav a { padding:8px 7px; }
+  nav a { font-size:10.5px; padding:8px 2px; }
   .hero h1 { font-size:36px; }
   .hero-tagline { font-size:10px; }
 }
