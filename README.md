@@ -1,2 +1,0 @@
-# Ffc
-Founders football cup
